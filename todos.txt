@@ -8,3 +8,18 @@
       started 
     - quantify the drop in new cases after vaccination has started
     - provide mean time of case drops from start of vaccination = "effect time"
+
+Parameters of SIR model
+alpha         = temporary immunity rate (recovered to susceptible) 
+beta1         = contact and infection rate of transmission per contact from
+                infected class (can change dep on vaccine research)
+theta         = transition rate of exposed individuals to the infected class
+                (immune system's aukaat)
+rho           = rate of first vaccination of susceptible or recovered and
+                susceptible people (known as a function of time)
+phi           = second vaccination rate (reciprocal is the time between two
+                vaccinations)
+chi           = probability of transmission per contact from exposed individuals
+delta_i       = death rate for infected individuals (delta_2 is minimum)
+phi'          = second vaccination rate of those who caught covid in between two
+                vaccinations, > phi
