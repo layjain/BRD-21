@@ -1,0 +1,6 @@
+- develop SEIVR model
+    - read paper
+    
+- visualization
+    - gather vaccine data from 3 countries - USA, Israel, India
+    - plot time series of cases and vaccinations since vaccines started 
