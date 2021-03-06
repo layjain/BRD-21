@@ -4,3 +4,7 @@
 - visualization
     - gather vaccine data from 3 countries - USA, Israel, India
     - plot time series of cases and vaccinations since vaccines started 
+    - derivative of total_cases = new_cases before and 3 wks after vaccination
+      started 
+    - quantify the drop in new cases after vaccination has started
+    - provide mean time of case drops from start of vaccination = "effect time"
