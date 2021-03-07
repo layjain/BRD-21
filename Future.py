@@ -41,9 +41,11 @@ for country_location in list(top_few)+["United States"]:
     _deaths = list(owid_country.total_deaths)
     deaths = [e-_deaths[0] for e in _deaths]
     deaths = [death*1e6/N for death in deaths]  # standardize the deaths
+    train_deaths = deaths[:int(TAU*len(deaths))]
 
     _dates = list(owid_country.date)
     dates = [date_difference(e, _dates[0]) for e in _dates]
+    train_dates = dates[:int(TAU*len(deaths))]
     
     N = 1e6
     # Models
@@ -76,9 +78,9 @@ for country_location in list(top_few)+["United States"]:
     plt.scatter(dates, [model_final_1.D[i] for i in dates], label = "Predicted 1", marker='.')
     plt.scatter(dates, deaths, label="Deaths Actual", marker='.')
 
+    plt.xticks([train_dates[-1]], ['End of Training data']) 
+    plt.axvline(x=train_dates[-1], ymin=0, ymax=1, linestyle = "dashed")
     # plt.scatter(owid_country.date, owid_country.total_vaccinations, label="Total Vaccinations")
     plt.title(country_location)
     plt.legend()
     plt.show()
-
-results_df.to_csv("ParameterFit.csv")
