@@ -6,6 +6,8 @@ import numpy as np
 from operator import itemgetter
 from utils import *
 
+TAU = 0.9
+
 np.seterr("raise")
 
 owid_df = pd.read_csv("owid/owid-covid-data-new.csv")
@@ -31,15 +33,17 @@ for country_location in list(top_few)+["United States"]:
     owid_country = owid_country[owid_country.total_vaccinations.notnull()]
 
     #Series to Predict
+    N = list(owid_country["population"])[0]
+
     _deaths = list(owid_country.total_deaths)
     deaths = [e-_deaths[0] for e in _deaths]
+    deaths = [death*1e6/N for death in deaths]  # standardize the deaths
+    train_deaths = deaths[:int(TAU*len(deaths))]
 
     _dates = list(owid_country.date)
     dates = [date_difference(e, _dates[0]) for e in _dates]
-
-    N = list(owid_country["population"])[0]
-    deaths = [death*1e6/N for death in deaths]
-
+    train_dates = dates[:int(TAU*len(deaths))]
+    
     N = 1e6
     # Models
     model_1 = CoronaVIRES_1(N)
@@ -58,13 +62,13 @@ for country_location in list(top_few)+["United States"]:
         return ret
 
     # alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
-    # lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//2,N//10000,N//10000]
-    lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//3,N//100000,N//100000]
+    lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//2,N//10000,N//10000]
+    # lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//3,N//100000,N//100000]
     #               alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
-    # upper_bounds = [1,     0.5,   0.3,  0.2,   1,   0.1, 0.1, 0.2, 1,    0.5,   N,   N,  N//10]
-    upper_bounds = [1, 0.5, 0.3, 0.2, 1, 0.1, 0.1, 0.2, 1, 0.5, N, N, N]
-    opt = curve_fit(f2, dates, deaths, bounds = (lower_bounds,upper_bounds))
-    
+    upper_bounds = [1,     0.5,   0.3,  0.2,   1,   0.1, 0.1, 0.2, 1,    0.5,   N,   N,  N//10]
+    # upper_bounds = [1, 0.5, 0.3, 0.2, 1, 0.1, 0.1, 0.2, 1, 0.5, N, N, N]
+    opt = curve_fit(f2, train_dates, train_deaths, bounds = (lower_bounds,upper_bounds))
+
     #Plot
     alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0 = opt[0]
     model_final_1 = CoronaVIRES_1(N)
@@ -72,6 +76,8 @@ for country_location in list(top_few)+["United States"]:
     model_final_1.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
     plt.scatter(dates, [model_final_1.D[i] for i in dates], label = "Predicted 1", marker='.')
     plt.scatter(dates, deaths, label="Deaths Actual", marker='.')
+    plt.xticks([train_dates[-1]], ['End of Training data']) 
+    plt.axvline(x=train_dates[-1], ymin=0, ymax=1, linestyle = "dashed")
     # plt.scatter(owid_country.date, owid_country.total_vaccinations, label="Total Vaccinations")
     plt.title(country_location)
     plt.legend()
