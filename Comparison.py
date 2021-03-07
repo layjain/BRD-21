@@ -27,8 +27,12 @@ for country_location in owid_df["location"].unique():
 top_few = dict(sorted(country_to_vaccination_days_count.items(), key=itemgetter(1), reverse=True)[:10])
 
 results_df = pd.DataFrame()
-results_df["Parameter/Countries"] = ["alpha", "beta", "del1", "del2", "chi", "dels", "rho", "phi", "phi2", "theta", "S0", "Es0", "Is0"]
+results_df["Errors/Countries"] = ["CoronaVIRES","SEIRV"]
 for country_location in list(top_few)+["United States"]:
+    #Baseline Model cannot fit this to the desired accuracy and runs out of function calls
+    if country_location in []:
+        continue 
+    
     # Example: country_location = "Italy"
     owid_country = owid_df.loc[owid_df['location']==country_location]
 
@@ -40,24 +44,19 @@ for country_location in list(top_few)+["United States"]:
 
     _deaths = list(owid_country.total_deaths)
     deaths = [e-_deaths[0] for e in _deaths]
-    deaths = [death*1e6/N for death in deaths]  # standardize the deaths
+    deaths = [death*1/N for death in deaths]  # standardize the deaths
     train_deaths = deaths[:int(TAU*len(deaths))]
 
     _dates = list(owid_country.date)
     dates = [date_difference(e, _dates[0]) for e in _dates]
     train_dates = dates[:int(TAU*len(deaths))]
     
-    N = 1e6
+    N = 1
     # Models
     model_1 = CoronaVIRES_1(N)
     model_base = SEIR_Baseline(N)
 
-    # def f1(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
-    #     ret = []
-    #     for T in t:
-    #         death_T = model_1.predict_Deaths(int(T), alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
-    #         ret.append(death_T)
-    #     return ret
+    print(country_location)
     
     def f2(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
         predicted_deaths = model_1.predict_Deaths_for_T_days(int(max(t)), alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
@@ -73,7 +72,6 @@ for country_location in list(top_few)+["United States"]:
     # upper_bounds = [1,     0.5,   0.3,  0.2,   1,   0.1, 0.1, 0.2, 1,    0.5,   N,   N,  N//10]
     upper_bounds = [1, 0.5, 0.3, 0.2, 1, 0.1, 0.1, 0.2, 1, 0.5, N, N, N]
     opt = curve_fit(f2, dates, deaths, bounds = (lower_bounds,upper_bounds))
-    
 
     def f1_base(t,alpha, beta, chi, dels, rho, theta, S0, Es0, Is0):
         ret = []
@@ -101,12 +99,21 @@ for country_location in list(top_few)+["United States"]:
     model_base_final = SEIR_Baseline(N)
     model_base_final.run_predict(T, alpha_base, beta_base, chi_base, dels_base, rho_base, theta_base, S0_base, Es0_base, Is0_base)
     print("Fitting Done,Plotting")
-    plt.scatter(dates, [model_final_1.D[i] for i in dates], label = "Predicted 1", marker='.')
+    coronavires_e, base_e = calculate_errors(deaths,train_deaths,predicted_deaths = [model_final_1.D[i] for i in dates],predicted_deaths_base = [model_base_final.D[i] for i in dates])
+    results_df[country_location] = [coronavires_e, base_e]
+
+    plt.scatter(dates, [model_final_1.D[i] for i in dates], label = "CoronaVIRES", marker='.')
     plt.scatter(dates, [model_base_final.D[i] for i in dates], label = "SEIR Baseline", marker='.')
     plt.scatter(dates, deaths, label="Deaths Actual", marker='.')
-    plt.xticks([train_dates[-1]], ['End of Training data']) 
+    # old_ticks = plt.xticks()
+    # plt.xticks(list(old_ticks[0])+[train_dates[-1]], old_ticks[1]+['End of Training data']) 
     plt.axvline(x=train_dates[-1], ymin=0, ymax=1, linestyle = "dashed")
     # plt.scatter(owid_country.date, owid_country.total_vaccinations, label="Total Vaccinations")
     plt.title(country_location)
     plt.legend()
+    plt.xlabel("Days")
+    plt.ylabel("Death Counts(Normalized)")
+    plt.savefig("figures/Comparison_{}.png".format(country_location)) 
     plt.show()
+
+results_df.to_csv("Comparison.csv")
