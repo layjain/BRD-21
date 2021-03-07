@@ -38,7 +38,9 @@ for country_location in list(top_few)+["United States"]:
     dates = [date_difference(e, _dates[0]) for e in _dates]
 
     N = list(owid_country["population"])[0]
+    deaths = [death*1e6/N for death in deaths]
 
+    N = 1e6
     # Models
     model_1 = CoronaVIRES_1(N)
     def f1(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
@@ -48,12 +50,21 @@ for country_location in list(top_few)+["United States"]:
             ret.append(death_T)
         return ret
     
-    # alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
-    lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//2,N//10000,N//10000]
-    #               alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
-    upper_bounds = [1,     0.5,   0.3,  0.2,   1,   0.1, 0.1, 0.2, 1,    0.5,   N,   N,  N//10]
-    opt = curve_fit(f1, dates, deaths, bounds = (lower_bounds,upper_bounds))
+    def f2(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
+        predicted_deaths = model_1.predict_Deaths_for_T_days(int(max(t)), alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
+        ret = []
+        for time in t:
+            ret.append(predicted_deaths[time])
+        return ret
 
+    # alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
+    # lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//2,N//10000,N//10000]
+    lower_bounds = [0,0,0,0,0,0,0,0,0,0,N//3,N//100000,N//100000]
+    #               alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
+    # upper_bounds = [1,     0.5,   0.3,  0.2,   1,   0.1, 0.1, 0.2, 1,    0.5,   N,   N,  N//10]
+    upper_bounds = [1, 0.5, 0.3, 0.2, 1, 0.1, 0.1, 0.2, 1, 0.5, N, N, N]
+    opt = curve_fit(f2, dates, deaths, bounds = (lower_bounds,upper_bounds))
+    
     #Plot
     alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0 = opt[0]
     model_final_1 = CoronaVIRES_1(N)

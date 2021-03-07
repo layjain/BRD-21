@@ -80,6 +80,10 @@ class CoronaVIRES_1(object):
         self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
         return self.D[T]
     
+    def predict_Deaths_for_T_days(self, T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
+        self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
+        return  self.D
+        
     def predict_Positive(self, T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
         self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
         return self.I[T]
