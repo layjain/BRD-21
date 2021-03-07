@@ -1,0 +1,52 @@
+\documentclass[12pt]{article}
+ \usepackage[margin=0.8in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb,amsfonts}
+ 
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+ 
+\newenvironment{problem}[2][Problem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+%If you want to title your bold things something different just make another thing exactly like this but replace "problem" with the name of the thing you want, like theorem or lemma or whatever
+ 
+\begin{document}
+ 
+%\renewcommand{\qedsymbol}{\filledbox}
+%Good resources for looking up how to do stuff:
+%Binary operators: http://www.access2science.com/latex/Binary.html
+%General help: http://en.wikibooks.org/wiki/LaTeX/Mathematics
+%Or just google stuff
+
+\title{Citadel Boston Regional Datathon 2021}
+\author{Shinjini Ghosh, Lay Jain, Pawan Goyal}
+\date{\today}
+\maketitle
+
+
+\section*{SEIVR Model Equations}
+\begin{align*}
+    % \def\arraystretch{1.5}
+    % \renewcommand\arraystretch{1.5}
+    \Dot{S} & = \alpha R_S - \frac{S}{N}\beta I- \frac{S}{N}\chi E-\rho S \\[4pt]
+    \Dot{V_1} &= \rho S + \rho R_S - \frac{V_1}{N}\beta I - \frac{V_1}{N}\chi E - \phi V_1 \\[4pt]
+    \Dot{V_2} &= \phi V_1 + \phi ' R_1 + (1-\delta_2)I_2 - \frac{V_2}{N} \beta I - \frac{V_2}{N} \chi E \\[4pt]
+    \Dot{E_1} &= \frac{V_1}{N} \beta I + \frac{V_1}{N} \chi E - \theta E_1\\[4pt]
+    \Dot{E_2} &= \frac{V_2}{N} \beta I + \frac{V_2}{N} \chi E - \theta E_2 \\[4pt]
+    \Dot{E_S} &= \frac{S}{N} \beta I + \frac{S}{N} \chi E - \theta E_S \\[4pt]
+    \Dot{I_1} &= \theta E_1 - \delta_1 I_1 - (1-\delta_1) I_1 \\[4pt]
+    \Dot{I_2} &= \theta E_2 - \delta_2 I_2 - (1-\delta_2) I_2 \\[4pt]
+    \Dot{I_S} &= \theta E_S - \delta_S I_S - (1-\delta_S) I_S \\[4pt]
+    \Dot{R_1} &= (1-\delta_1) I_1 - \phi ' R_1 \\[4pt]
+    \Dot{R_S} &= (1-\delta_S) I_S - \rho R_S - \alpha R_S \\[4pt]
+    \Dot{D} &= \delta_1 I_1 + \delta_2 I_2 + \delta_S I_S \\
+\end{align*}
+\vspace{-4mm}
+where 
+\vspace{-5mm}
+\begin{align*}
+    I &= I_1 + I_2 + I_3 \\
+    E &= E_1 + E_2 + E_3 \\
+    N &= S + V_1 + V_2 + E_1 + E_2 + E_S + I_1 + I_2 + I_S + R_1 + R_2 + R_S + D \\
+\end{align*}
+
+\end{document}
