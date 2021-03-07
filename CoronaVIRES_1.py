@@ -80,10 +80,22 @@ class CoronaVIRES_1(object):
         self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
         return self.D[T]
     
+    def predict_Deaths_for_T_days(self, T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
+        self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
+        return  self.D
+        
     def predict_Positive(self, T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
         self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
         return self.I[T]
         #TODO: I+E or I
+
+    def predict_new_deaths(self, T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
+        self.predict_Deaths(T+1, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
+        new_deaths = [0 for _ in range(len(self.D)-1)]
+        for i in range(1,len(self.D)):
+            new_deaths[i-1] = self.D[i]-self.D[i-1]
+        self.new_deaths = new_deaths
+        return new_deaths[T]
 
     def fit_model(self, Deaths_observed, Infected_Observed, plot=False, plot_title="CoronaVIRES1", weights=None):
         pass
