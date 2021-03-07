@@ -1,4 +1,5 @@
 from CoronaVIRES_1 import CoronaVIRES_1
+from SEIR_1 import SEIR_Baseline
 from scipy.optimize import curve_fit
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -43,18 +44,20 @@ for country_location in list(top_few)+["United States"]:
     N = 1e6
     # Models
     model_1 = CoronaVIRES_1(N)
-    def f1(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
-        ret = []
-        for T in t:
-            death_T = model_1.predict_Deaths(int(T), alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
-            ret.append(death_T)
-        return ret
+    model_base = SEIR_Baseline(N)
+
+    # def f1(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
+    #     ret = []
+    #     for T in t:
+    #         death_T = model_1.predict_Deaths(int(T), alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
+    #         ret.append(death_T)
+    #     return ret
     
     def f2(t,alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0):
         predicted_deaths = model_1.predict_Deaths_for_T_days(int(max(t)), alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
         ret = []
         for time in t:
-            ret.append(predicted_deaths[time])
+            ret.append(predicted_deaths[int(time)])
         return ret
 
     # alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0
@@ -65,12 +68,35 @@ for country_location in list(top_few)+["United States"]:
     upper_bounds = [1, 0.5, 0.3, 0.2, 1, 0.1, 0.1, 0.2, 1, 0.5, N, N, N]
     opt = curve_fit(f2, dates, deaths, bounds = (lower_bounds,upper_bounds))
     
+
+    def f1_base(t,alpha, beta, chi, dels, rho, theta, S0, Es0, Is0):
+        ret = []
+        for T in t:
+            death_T = model_base.predict_Deaths(int(T), alpha, beta, chi, dels, rho, theta, S0, Es0, Is0)
+            ret.append(death_T)
+        return ret
+
+    lower_bounds_base = [0,        0,  0,   0,    0,     0,  N//3, N//100000,N//100000]
+    #               alpha, beta, chi, dels, rho, theta, S0, Es0, Is0
+    # upper_bounds = [1,     0.5,   0.3,  0.2,   1,   0.1, 0.1, 0.2, 1,    0.5,   N,   N,  N//10]
+    upper_bounds_base = [1, 0.5, 1, 0.1, 0.1,      0.5, N, N, N]
+    opt_base = curve_fit(f1_base, dates, deaths, bounds = (lower_bounds_base,upper_bounds_base))
+
+
+
     #Plot
     alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0 = opt[0]
+    alpha_base, beta_base, chi_base, dels_base, rho_base, theta_base, S0_base, Es0_base, Is0_base = opt_base[0]
+
     model_final_1 = CoronaVIRES_1(N)
     T = max(dates)
     model_final_1.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
+
+    model_base_final = SEIR_Baseline(N)
+    model_base_final.run_predict(T, alpha_base, beta_base, chi_base, dels_base, rho_base, theta_base, S0_base, Es0_base, Is0_base)
+    print("Fitting Done,Plotting")
     plt.scatter(dates, [model_final_1.D[i] for i in dates], label = "Predicted 1", marker='.')
+    plt.scatter(dates, [model_base_final.D[i] for i in dates], label = "SEIR Baseline", marker='.')
     plt.scatter(dates, deaths, label="Deaths Actual", marker='.')
     # plt.scatter(owid_country.date, owid_country.total_vaccinations, label="Total Vaccinations")
     plt.title(country_location)
