@@ -84,3 +84,6 @@ class CoronaVIRES_1(object):
         self.run_predict(T, alpha, beta, del1, del2, chi, dels, rho, phi, phi2, theta, S0, Es0, Is0)
         return self.I[T]
         #TODO: I+E or I
+
+    def fit_model(self, Deaths_observed, Infected_Observed, plot=False, plot_title="CoronaVIRES1", weights=None):
+        pass
